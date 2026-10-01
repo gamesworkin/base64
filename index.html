@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor Avançado de Imagem para Base64 (Máx 50KB)</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-muted: #64748b;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --border-color: #cbd5e1;
+            --success: #16a34a;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+            padding: 32px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        p.subtitle {
+            font-size: 0.925rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        /* Seção de URL */
+        .url-section {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .url-input {
+            flex-grow: 1;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            background: #f8fafc;
+            color: var(--text-color);
+        }
+
+        .url-input:focus {
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .btn-url {
+            background-color: #475569;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-url:hover {
+            background-color: #334155;
+        }
+
+        .divider {
+            text-align: center;
+            position: relative;
+            margin: 16px 0;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .divider::before, .divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 42%;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        /* Área de Drop / Paste */
+        .dropzone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius);
+            padding: 30px 20px;
+            text-align: center;
+            background-color: #fcfcfd;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .dropzone:hover, .dropzone:focus {
+            border-color: var(--primary);
+            background-color: #f0f6ff;
+        }
+
+        .dropzone p {
+            font-size: 0.925rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        .dropzone p strong {
+            color: var(--primary);
+        }
+
+        .upload-icon {
+            width: 40px;
+            height: 40px;
+            color: var(--primary);
+            margin: 0 auto;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Painel de Resultado */
+        .result-container {
+            margin-top: 24px;
+            display: none;
+        }
+
+        .result-container.active {
+            display: block;
+        }
+
+        .preview-wrapper {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .preview-img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+        }
+
+        .file-info {
+            flex-grow: 1;
+            font-size: 0.875rem;
+        }
+
+        .file-info span {
+            display: block;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .file-info .size-warning {
+            color: #d97706;
+            font-weight: 500;
+        }
+
+        .file-info .size-ok {
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        .textarea-group {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 110px;
+            padding: 12px;
+            font-size: 0.85rem;
+            font-family: monospace;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: #f8fafc;
+            resize: vertical;
+            color: var(--text-color);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 0.925rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+        .btn-success:hover {
+            background-color: #15803d;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body tabindex="0">
+
+    <div class="container">
+        <h1>Conversor Base64</h1>
+        <p class="subtitle">Cole um print, cole um link de imagem (Ctrl+V ou no campo), ou selecione do dispositivo.</p>
+
+        <!-- Campo dedicado para URL da imagem -->
+        <div class="url-section">
+            <input type="url" id="imageUrlInput" class="url-input" placeholder="Cole o link da imagem aqui (ex: https://site.com/foto.jpg)">
+            <button class="btn-url" id="loadUrlBtn" onclick="processImageUrl()">Converter Link</button>
+        </div>
+
+        <div class="divider">ou</div>
+
+        <!-- Zona de Upload / Paste -->
+        <div class="dropzone" id="dropZone">
+            <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p>Clique, envie arquivo ou <strong>cole print / link (Ctrl+V)</strong></p>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <!-- Área de Resultados -->
+        <div class="result-container" id="resultContainer">
+            <div class="preview-wrapper">
+                <img id="imagePreview" class="preview-img" src="" alt="Preview">
+                <div class="file-info">
+                    <strong>Imagem processada</strong>
+                    <span id="fileSizeInfo">Tamanho: 0 KB</span>
+                </div>
+            </div>
+
+            <div class="textarea-group">
+                <textarea id="base64Output" readonly placeholder="O código Base64 aparecerá aqui..."></textarea>
+            </div>
+
+            <button class="btn" id="copyBtn" onclick="copyToClipboard()">Copiar Código Base64</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Código copiado com sucesso!</div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const imageUrlInput = document.getElementById('imageUrlInput');
+        const resultContainer = document.getElementById('resultContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const base64Output = document.getElementById('base64Output');
+        const fileSizeInfo = document.getElementById('fileSizeInfo');
+        const toast = document.getElementById('toast');
+        const copyBtn = document.getElementById('copyBtn');
+
+        // Abrir seletor de arquivos ao clicar na área
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Tratar arquivos selecionados pelo input
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                processImageFile(e.target.files[0]);
+            }
+        });
+
+        // Ouvir eventos de colar (Ctrl+V) na página inteira
+        window.addEventListener('paste', (e) => {
+            // Se o usuário estiver focado no input de texto, deixa colar normalmente como texto
+            if (document.activeElement === imageUrlInput) return;
+
+            const items = e.clipboardData || e.originalEvent.clipboardData;
+            if (!items) return;
+
+            // 1. Verificar se colou um arquivo de imagem (Print)
+            let imageFound = false;
+            for (let i = 0; i < items.items.length; i++) {
+                if (items.items[i].type.indexOf('image') !== -1) {
+                    const blob = items.items[i].getAsFile();
+                    processImageFile(blob);
+                    imageFound = true;
+                    break;
+                }
+            }
+
+            if (imageFound) return;
+
+            // 2. Verificar se colou um texto que é um Link de Imagem ou URL válida
+            const pastedText = e.clipboardData.getData('text').trim();
+            if (pastedText && isValidUrl(pastedText)) {
+                imageUrlInput.value = pastedText;
+                processImageUrl(pastedText);
+            }
+        });
+
+        // Validar formato básico de URL
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        // Processar imagem via URL do campo de texto
+        function processImageUrl(urlOverride = null) {
+            const url = urlOverride || imageUrlInput.value.trim();
+            if (!url) {
+                alert('Por favor, insira ou cole um link de imagem válido.');
+                return;
+            }
+
+            // Usamos um proxy público para mitigar problemas de CORS ao carregar imagens externas de outros sites
+            const proxyUrl = 'https://images.weserv.nl/?url=' + encodeURIComponent(url);
+
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            
+            img.onload = function() {
+                compressAndConvert(img, 'image/jpeg');
+            };
+            
+            img.onerror = function() {
+                // Tenta carregar direto caso o proxy falhe
+                img.src = url;
+                img.onerror = function() {
+                    alert('Não foi possível carregar a imagem a partir deste link. Verifique se o link é público e direto.');
+                }
+            };
+            
+            img.src = proxyUrl;
+        }
+
+        // Processar arquivo de imagem local / colado
+        function processImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    compressAndConvert(img, file.type);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Motor de compressão e conversão (Mantém <= 50KB com proporção original)
+        function compressAndConvert(img, originalType) {
+            const canvas = document.createElement('canvas');
+            let ctx = canvas.getContext('2d');
+
+            let width = img.width;
+            let height = img.height;
+
+            let mimeType = (originalType === 'image/png') ? 'image/jpeg' : (originalType || 'image/jpeg');
+            let quality = 0.90;
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            let dataUrl = canvas.toDataURL(mimeType, quality);
+            let sizeInKB = Math.round((dataUrl.length * (3/4)) / 1024);
+
+            let attempts = 0;
+            while (sizeInKB > 50 && attempts < 8) {
+                if (quality > 0.4) {
+                    quality -= 0.1;
+                } else {
+                    width = Math.floor(width * 0.85);
+                    height = Math.floor(height * 0.85);
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.clearRect(0, 0, width, height);
+                    ctx.drawImage(img, 0, 0, width, height);
+                }
+                dataUrl = canvas.toDataURL(mimeType, quality);
+                sizeInKB = Math.round((dataUrl.length * (3/4)) / 1024);
+                attempts++;
+            }
+
+            imagePreview.src = dataUrl;
+            base64Output.value = dataUrl;
+            
+            if (sizeInKB <= 50) {
+                fileSizeInfo.innerHTML = `Tamanho otimizado: <span class="size-ok">${sizeInKB} KB</span> (${width}x${height}px)`;
+            } else {
+                fileSizeInfo.innerHTML = `Tamanho: <span class="size-warning">${sizeInKB} KB</span> (Muitos detalhes na imagem)`;
+            }
+
+            resultContainer.classList.add('active');
+        }
+
+        // Copiar para área de transferência
+        function copyToClipboard() {
+            base64Output.select();
+            navigator.clipboard.writeText(base64Output.value).then(() => {
+                showToast();
+                copyBtn.textContent = 'Copiado!';
+                copyBtn.classList.add('btn-success');
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copiar Código Base64';
+                    copyBtn.classList.remove('btn-success');
+                }, 2000);
+            });
+        }
+
+        function showToast() {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
