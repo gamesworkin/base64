@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conversor Avançado de Imagem para Base64 (Máx 50KB)</title>
+    <title>Conversor Avançado de Imagem para Base64 (Máx 30KB)</title>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -421,7 +421,7 @@
             reader.readAsDataURL(file);
         }
 
-        // Motor de compressão e conversão (Mantém <= 50KB com proporção original)
+        // Motor de compressão e conversão (Mantém <= 30KB com proporção original)
         function compressAndConvert(img, originalType) {
             const canvas = document.createElement('canvas');
             let ctx = canvas.getContext('2d');
@@ -430,7 +430,7 @@
             let height = img.height;
 
             let mimeType = (originalType === 'image/png') ? 'image/jpeg' : (originalType || 'image/jpeg');
-            let quality = 0.90;
+            let quality = 0.70;
 
             canvas.width = width;
             canvas.height = height;
@@ -440,7 +440,7 @@
             let sizeInKB = Math.round((dataUrl.length * (3/4)) / 1024);
 
             let attempts = 0;
-            while (sizeInKB > 50 && attempts < 8) {
+            while (sizeInKB > 30 && attempts < 8) {
                 if (quality > 0.4) {
                     quality -= 0.1;
                 } else {
@@ -459,7 +459,7 @@
             imagePreview.src = dataUrl;
             base64Output.value = dataUrl;
             
-            if (sizeInKB <= 50) {
+            if (sizeInKB <= 30) {
                 fileSizeInfo.innerHTML = `Tamanho otimizado: <span class="size-ok">${sizeInKB} KB</span> (${width}x${height}px)`;
             } else {
                 fileSizeInfo.innerHTML = `Tamanho: <span class="size-warning">${sizeInKB} KB</span> (Muitos detalhes na imagem)`;
